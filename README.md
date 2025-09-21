@@ -326,7 +326,113 @@ resilience4j:
 
 myCircuitBreaker - это тот самый name, который мы задаем в аннотации
 
-Также circuitBreaker отдает метрики микрометра, здесь можно скачать дашборд grafana для мониторинга
+Также circuitBreaker отдает метрики микрометра, здесь можно скачать дашборд grafana для мониторинга.
+
+### Retry
+
+Позволяет выполнять повторные попытки в случае возникновения ошибок
+
+Настройки retry:
+
+* **maxAttempts** - максимальное количество попыток, включая первый вызов, по ум. 3
+
+* **waitDuration** - фиксированное время между попытками, по ум. 500 мс
+
+* **intervalFunction** - функция определения интервала, по ум. numOfAttempts -> waitDuration
+
+* **intervalBiFunction** - также функция определения интервала, но в качестве аргументов принимает количество попыток и результат выполнения метода, по ум. (numOfAttempts, Either<throwable, result>) -> waitDuration
+
+* **retryOnResultPredicate** - условие по которому должен быть выполнен retry, при определенном результате, по ум. result -> false
+
+* **retryExceptionPredicate** - условие по которому должен быть выполнен retry, при ошибке, по ум. throwable -> true (при всех ошибках)
+
+* **retryExceptions** - список ошибок, по которым должен быть выполнены retry, по ум. пустой
+
+* **ignoreExceptions** - список игнорируемых ошибок, по ум. пустой
+
+* **failAfterMaxAttempts** - следует ли выбрасывать MaxRetriesExceededException, в случае превышения количества попыток, по ум. false
+
+При использовании с webflux подставляет в реактивную цепочку оператор .retry()
+
+Пример использования:
+
+```java
+@Retry(name = "myRetry")
+public Mono<MyResponse> sendRequest() {
+    ...
+}
+```
+
+```
+resilience4j.retry:
+  configs:
+    default:
+      maxAttempts: 3
+      waitDuration: 100ms
+      retryExceptions:
+        - org.springframework.web.client.HttpServerErrorException
+        - java.util.concurrent.TimeoutException
+        - java.io.IOException
+      ignoreExceptions:
+        - io.github.robwin.exception.BusinessException
+```
+
+Обратите внимание, что в настройках не обязательно прописывать name конкретного инструмента, если вам достаточно default конфигурации
+
+Данный инструмент удобен, если в вашем коде в нескольких местах нужно выполнять повторные попытки с одинаковыми условиями, поскольку можно один раз задать все нужные настройки и использовать аннотацию в нескольких местах
+
+Если же вы выберете spring retry или оператор .retry() в webflux, то вам каждый раз придется задавать все условия выполнения повторных попыток в месте использования этих
+
+Также как и circuitBreaker отдает метрики, поэтому можно настроить мониторинг.
+
+### Rate Limiter
+
+Позволяет ограничить количество вызовов метода за указанный промежуток времени, при превышении количества вызовов остальные будут ожидать своей очереди в течение заданного таймаута
+
+Например мы хотим чтобы какой-то внешний сервис нельзя было вызывать более 100 раз в секунду, и если мы вдруг превысили данную нагрузку, то потоки будут ждать, либо вернуть заданный ответ (fallback), либо выбросят ошибку
+
+Настройки rateLimiter:
+
+* **timeoutDuration** - время в течение которого поток ждет разрешения, по ум. 5 сек
+
+* **limitRefreshPeriod** - период за который ограничивается число вызовов, по ум. 500 наносекунд
+
+* **limitForPeriod** - предельное число вызовов за время указанное в limitRefreshPeriod, по ум. 50
+
+Пример использования:
+
+```java
+@RateLimiter(name = "myRateLimiter", fallbackMethod = "myFallbackMethod")
+public Mono<SomeResult> doSomething() {
+    ...
+}
+
+private Mono<SomeResult> myFallbackMethod(Exception ex) {
+    log.warn(ex.getMessage(), ex);
+    return Mono.error(...);
+}
+```
+
+```
+resilience4j.rateLimiter:
+  configs:
+    default:
+      timeoutDuration: 5s
+      limitForPeriod: 10
+      limit-refresh-period: 1s
+```
+
+В данном примере если количество вызовов метода превысит 10 за секунду, то вызывающие потоки будут ждать 5 секунд, перед тем как попытаться снова вызвать метод
+
+Если количество вызовов метода превысит limitForPeriod и потоки не дождутся своей очереди, то будет выброшено исключение RequestNotPermitted или вызван fallback метод, если мы его задали
+
+Использует два возможных механизма, на основе атомиков и на основе семафора, первый используется по умолчанию и переключиться на второй нет никакой возможности
+
+Во внутренней реализации с использованием webflux добавляет .delaySubscription() - т.е. откладывает именно подписку на издателя (Mono/Flux), а не откладывает пропускание самих элементов
+
+![Another text](https://habrastorage.org/r/w1560/getpro/habr/upload_files/0fb/2e4/a2a/0fb2e4a2a61e2b592ab54d773217fa03.png)
+
+Поэтому если ваш метод не создает Mono/Flux, а например принимает его в качестве параметра, добавляет в цепочку операторы и возвращает в ответе, то работать RateLimiter будет не так как вы ожидаете, здесь подробно закапываться в эту тему не буду, достаточно понимать что в таком подходе его лучше не использовать.
 
 
 ### Links
@@ -334,3 +440,4 @@ myCircuitBreaker - это тот самый name, который мы задае
 * [Защитные паттерны](https://proselyte.net/protective-patterns/)
 
 * [Backend roadmap](https://www.geeksforgeeks.org/websites-apps/backend-developer-roadmap/ "Click to navigate a new roadmap")
+* [Использование resilience4j со Spring Boot](https://habr.com/ru/articles/793550/)
