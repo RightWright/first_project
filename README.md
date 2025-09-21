@@ -1,5 +1,6 @@
 <a id="readme-top"></a>
 
+<!--
 <details>
   <summary>Table of Contents</summary>
   <ol>
@@ -24,6 +25,17 @@
     <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
+-->
+
+[//]: # (Some comment)
+
+| Name | URL | LOGO |
+|:- |:-:| -:|
+|Java   |https://www.java.com/   |<img src="https://www.oracle.com/a/tech/img/rc10-java-badge-3.png" width="50" />   |
+|Spring    |https://spring.io/     |<img src="https://spring.io/img/spring.svg" width="50" />     |
+|Micronaut      |https://micronaut.io/     |<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQBJBIDk2Tng_lwEapAcS2m3TzJlym-4ak7EQ&s" width="50" />      |
+|      |     |      |
+|      |     |      |
 
 # About The Project
 
@@ -44,6 +56,8 @@ This section should list major updates
 Now it's the choice that 
 
 ### Roadmap
+
+<!-- Some new comment! -->
 
 *Here we have mentioned all the concepts required to become a backend developer and the correct flow of learning them.*
 
