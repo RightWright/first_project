@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About HTML Page</title>
+    <style>
+        /* Basic styling for demonstration */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+        .ai-output {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-left: 4px solid #007bff;
+            margin-top: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the About section</h1>
+
+        <p>This page demonstrates basic HTML markup and provides a space.</p>
+
+        <h2>AI Interaction Section</h2>
+        <label for="aiInput">Enter your query:</label>
+        <input type="text" id="aiInput" placeholder="e.g., 'Summarize this text'">
+        <button onclick="sendToAI()">Generate Response</button>
+
+        <div class="ai-output" id="aiResponse">
+            <!-- AI generated content will appear here -->
+            <p>AI response will be displayed here.</p>
+        </div>
+
+        <h2>About</h2>
+        <p>Artificial intelligence is a rapidly evolving field with applications in various domains, including natural language processing, computer vision, and machine learning.</p>
+
+        <footer>
+            <p>2025 Demo</p>
+        </footer>
+    </div>
+
+</body>
+</html>
